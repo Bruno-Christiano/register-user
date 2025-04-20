@@ -1,18 +1,17 @@
 # app/routes/people.py
 from fastapi import APIRouter
-from app.models.person import Person
-from app.services.people_service import list_people_service, create_person_service, delete_person_service_by_id
-
+from services.people_service import create_person_service
+from dtos.person_dto import PersonResponseDto, CreatePersonDto
+from sqlalchemy.ext.asyncio import AsyncSession
+from db.database import get_db
+from fastapi import Depends
 router = APIRouter(prefix="", tags=["People"])
 
-@router.get("/listPeople", summary="List all people",description="This endpoint returns a list of all people in the database.")
-def list_people():
-    return list_people_service()
+@router.post("/createPerson", 
+             response_model=PersonResponseDto, 
+             summary="Create a new person", 
+             description="This endpoint creates a new person in the database.")
 
-@router.post("/createPerson", summary="Create a new person", description="This endpoint creates a new person in the database.")
-def create_person(person: Person):
-    return create_person_service(person)
+async def create_person_controller(person: CreatePersonDto, db:AsyncSession = Depends(get_db)) -> PersonResponseDto:
+    return await create_person_service(db,person)
   
-@router.delete("/deletePersonById/{id}", summary="Delete Person", description="This endpoint Delete person in the database.")
-def delete_person(id: int):
-    return delete_person_service_by_id(id)
